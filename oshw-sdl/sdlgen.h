@@ -56,8 +56,12 @@ typedef	struct oshwglobals
     fontcolors		textclr;	/* color triplet for normal text */
     fontcolors		dimtextclr;	/* color triplet for dim text */
     fontcolors		hilightclr;	/* color triplet for bold text */
-    SDL_Surface	       *screen;		/* the display */
+    SDL_Window         *window;     /* the window */
+    SDL_Renderer         *renderer;     /* the renderer */
+    SDL_Surface	       *screen;		/* the surface */
+    SDL_Texture        *texture;     /* the texture */
     fontinfo		font;		/* the font */
+    int keyboardRepeatEnabled;
 
     /* 
      * Shared functions.

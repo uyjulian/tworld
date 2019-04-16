@@ -44,7 +44,7 @@ enum { KS_OFF = 0,		/* key is not currently pressed */
 
 /* The complete array of key states.
  */
-static char		keystates[SDLK_LAST];
+static char		keystates[SDL_NUM_SCANCODES];
 
 /* The last mouse action.
  */
@@ -60,28 +60,28 @@ static int		joystickstyle = FALSE;
  * the key must be up, or negative if it doesn't matter.
  */
 static keycmdmap const gamekeycmds[] = {        
-    { SDLK_UP,                    0,  0,  0,   CmdNorth,              TRUE },
-    { SDLK_LEFT,                  0,  0,  0,   CmdWest,               TRUE },
-    { SDLK_DOWN,                  0,  0,  0,   CmdSouth,              TRUE },
-    { SDLK_RIGHT,                 0,  0,  0,   CmdEast,               TRUE },
-    { SDLK_KP8,                   0,  0,  0,   CmdNorth,              TRUE },
-    { SDLK_KP4,                   0,  0,  0,   CmdWest,               TRUE },
-    { SDLK_KP2,                   0,  0,  0,   CmdSouth,              TRUE },
-    { SDLK_KP6,                   0,  0,  0,   CmdEast,               TRUE },
+    { SDL_SCANCODE_UP,                    0,  0,  0,   CmdNorth,              TRUE },
+    { SDL_SCANCODE_LEFT,                  0,  0,  0,   CmdWest,               TRUE },
+    { SDL_SCANCODE_DOWN,                  0,  0,  0,   CmdSouth,              TRUE },
+    { SDL_SCANCODE_RIGHT,                 0,  0,  0,   CmdEast,               TRUE },
+    { SDL_SCANCODE_8,                   0,  0,  0,   CmdNorth,              TRUE },
+    { SDL_SCANCODE_4,                   0,  0,  0,   CmdWest,               TRUE },
+    { SDL_SCANCODE_2,                   0,  0,  0,   CmdSouth,              TRUE },
+    { SDL_SCANCODE_6,                   0,  0,  0,   CmdEast,               TRUE },
     { 'q',                        0,  0,  0,   CmdQuitLevel,          FALSE },
     { 'p',                        0, +1,  0,   CmdPrevLevel,          FALSE },
     { 'r',                        0, +1,  0,   CmdSameLevel,          FALSE },
     { 'n',                        0, +1,  0,   CmdNextLevel,          FALSE },
     { 'g',                        0, -1,  0,   CmdGotoLevel,          FALSE },
     { 'q',                       +1,  0,  0,   CmdQuit,               FALSE },
-    { SDLK_PAGEUP,               -1, -1,  0,   CmdPrev10,             FALSE },
+    { SDL_SCANCODE_PAGEUP,               -1, -1,  0,   CmdPrev10,             FALSE },
     { 'p',                        0,  0,  0,   CmdPrev,               FALSE },
     { 'r',                        0,  0,  0,   CmdSame,               FALSE },
     { 'n',                        0,  0,  0,   CmdNext,               FALSE },
-    { SDLK_PAGEDOWN,             -1, -1,  0,   CmdNext10,             FALSE },
+    { SDL_SCANCODE_PAGEDOWN,             -1, -1,  0,   CmdNext10,             FALSE },
     { '\b',                      -1, -1,  0,   CmdPauseGame,          FALSE },
     { '?',			 -1, -1,  0,   CmdHelp,               FALSE },
-    { SDLK_F1,                   -1, -1,  0,   CmdHelp,               FALSE },
+    { SDL_SCANCODE_F1,                   -1, -1,  0,   CmdHelp,               FALSE },
     { 'o',			  0,  0,  0,   CmdStepping,           FALSE },
     { 'o',			 +1,  0,  0,   CmdSubStepping,        FALSE },
     { 'f',			  0,  0,  0,   CmdRndSlideDir,        FALSE },
@@ -93,19 +93,19 @@ static keycmdmap const gamekeycmds[] = {
     { 's',			  0, +1,  0,   CmdSeeSolutionFiles,   FALSE },
     { 'v',                       +1,  0,  0,   CmdVolumeUp,           FALSE },
     { 'v',                        0,  0,  0,   CmdVolumeDown,         FALSE },
-    { SDLK_RETURN,               -1, -1,  0,   CmdProceed,            FALSE },
-    { SDLK_KP_ENTER,             -1, -1,  0,   CmdProceed,            FALSE },
+    { SDL_SCANCODE_RETURN,               -1, -1,  0,   CmdProceed,            FALSE },
+    { SDL_SCANCODE_RETURN,             -1, -1,  0,   CmdProceed,            FALSE },
     { ' ',                       -1, -1,  0,   CmdProceed,            FALSE },
     { 'd',                        0,  0,  0,   CmdDebugCmd1,          FALSE },
     { 'd',                       +1,  0,  0,   CmdDebugCmd2,          FALSE },
-    { SDLK_UP,                   +1,  0,  0,   CmdCheatNorth,         TRUE },
-    { SDLK_LEFT,                 +1,  0,  0,   CmdCheatWest,          TRUE },
-    { SDLK_DOWN,                 +1,  0,  0,   CmdCheatSouth,         TRUE },
-    { SDLK_RIGHT,                +1,  0,  0,   CmdCheatEast,          TRUE },
-    { SDLK_HOME,                 +1,  0,  0,   CmdCheatHome,          FALSE },
-    { SDLK_F10,                   0,  0,  0,   CmdCheatStuff,         FALSE },
+    { SDL_SCANCODE_UP,                   +1,  0,  0,   CmdCheatNorth,         TRUE },
+    { SDL_SCANCODE_LEFT,                 +1,  0,  0,   CmdCheatWest,          TRUE },
+    { SDL_SCANCODE_DOWN,                 +1,  0,  0,   CmdCheatSouth,         TRUE },
+    { SDL_SCANCODE_RIGHT,                +1,  0,  0,   CmdCheatEast,          TRUE },
+    { SDL_SCANCODE_HOME,                 +1,  0,  0,   CmdCheatHome,          FALSE },
+    { SDL_SCANCODE_F10,                   0,  0,  0,   CmdCheatStuff,         FALSE },
     { '\003',                    -1, -1,  0,   CmdQuit,               FALSE },
-    { SDLK_F4,                    0,  0, +1,   CmdQuit,               FALSE },
+    { SDL_SCANCODE_F4,                    0,  0, +1,   CmdQuit,               FALSE },
     { 0, 0, 0, 0, 0, 0 }
 };
 
@@ -113,15 +113,15 @@ static keycmdmap const gamekeycmds[] = {
  * input from the user.
  */
 static keycmdmap const inputkeycmds[] = {
-    { SDLK_UP,                   -1, -1,  0,   CmdNorth,              FALSE },
-    { SDLK_LEFT,                 -1, -1,  0,   CmdWest,               FALSE },
-    { SDLK_DOWN,                 -1, -1,  0,   CmdSouth,              FALSE },
-    { SDLK_RIGHT,                -1, -1,  0,   CmdEast,               FALSE },
+    { SDL_SCANCODE_UP,                   -1, -1,  0,   CmdNorth,              FALSE },
+    { SDL_SCANCODE_LEFT,                 -1, -1,  0,   CmdWest,               FALSE },
+    { SDL_SCANCODE_DOWN,                 -1, -1,  0,   CmdSouth,              FALSE },
+    { SDL_SCANCODE_RIGHT,                -1, -1,  0,   CmdEast,               FALSE },
     { '\b',                      -1, -1,  0,   CmdWest,               FALSE },
     { ' ',                       -1, -1,  0,   CmdEast,               FALSE },
-    { SDLK_RETURN,               -1, -1,  0,   CmdProceed,            FALSE },
-    { SDLK_KP_ENTER,             -1, -1,  0,   CmdProceed,            FALSE },
-    { SDLK_ESCAPE,               -1, -1,  0,   CmdQuitLevel,          FALSE },
+    { SDL_SCANCODE_RETURN,               -1, -1,  0,   CmdProceed,            FALSE },
+    { SDL_SCANCODE_RETURN,             -1, -1,  0,   CmdProceed,            FALSE },
+    { SDL_SCANCODE_ESCAPE,               -1, -1,  0,   CmdQuitLevel,          FALSE },
     { 'a',                       -1,  0,  0,   'a',                   FALSE },
     { 'b',                       -1,  0,  0,   'b',                   FALSE },
     { 'c',                       -1,  0,  0,   'c',                   FALSE },
@@ -149,7 +149,7 @@ static keycmdmap const inputkeycmds[] = {
     { 'y',                       -1,  0,  0,   'y',                   FALSE },
     { 'z',                       -1,  0,  0,   'z',                   FALSE },
     { '\003',                    -1, -1,  0,   CmdQuit,               FALSE },
-    { SDLK_F4,                    0,  0, +1,   CmdQuit,               FALSE },
+    { SDL_SCANCODE_F4,                    0,  0, +1,   CmdQuit,               FALSE },
     { 0, 0, 0, 0, 0, 0 }
 };
 
@@ -176,21 +176,21 @@ static int mergeable[CmdKeyMoveLast + 1];
 static void _keyeventcallback(int scancode, int down)
 {
     switch (scancode) {
-      case SDLK_LSHIFT:
-      case SDLK_RSHIFT:
-      case SDLK_LCTRL:
-      case SDLK_RCTRL:
-      case SDLK_LALT:
-      case SDLK_RALT:
-      case SDLK_LMETA:
-      case SDLK_RMETA:
-      case SDLK_NUMLOCK:
-      case SDLK_CAPSLOCK:
-      case SDLK_MODE:
+      case SDL_SCANCODE_LSHIFT:
+      case SDL_SCANCODE_RSHIFT:
+      case SDL_SCANCODE_LCTRL:
+      case SDL_SCANCODE_RCTRL:
+      case SDL_SCANCODE_LALT:
+      case SDL_SCANCODE_RALT:
+      case SDL_SCANCODE_LGUI:
+      case SDL_SCANCODE_RGUI:
+      case SDL_SCANCODE_NUMLOCKCLEAR:
+      case SDL_SCANCODE_CAPSLOCK:
+      case SDL_SCANCODE_MODE:
 	keystates[scancode] = down ? KS_ON : KS_OFF;
 	break;
       default:
-	if (scancode < SDLK_LAST) {
+	if (scancode < SDL_NUM_SCANCODES) {
 	    if (down) {
 		keystates[scancode] = keystates[scancode] == KS_OFF ?
 						KS_PRESSED : KS_REPEATING;
@@ -207,13 +207,13 @@ static void _keyeventcallback(int scancode, int down)
  */
 static void restartkeystates(void)
 {
-    Uint8      *keyboard;
+    const Uint8      *keyboard;
     int		count, n;
 
     memset(keystates, KS_OFF, sizeof keystates);
-    keyboard = SDL_GetKeyState(&count);
-    if (count > SDLK_LAST)
-	count = SDLK_LAST;
+    keyboard = SDL_GetKeyboardState(&count);
+    if (count > SDL_NUM_SCANCODES)
+	count = SDL_NUM_SCANCODES;
     for (n = 0 ; n < count ; ++n)
 	if (keyboard[n])
 	    _keyeventcallback(n, TRUE);
@@ -256,7 +256,7 @@ static void resetkeystates(void)
     int		n;
 
     newstate = joystickstyle ? joystick_trans : keyboard_trans;
-    for (n = 0 ; n < SDLK_LAST ; ++n)
+    for (n = 0 ; n < SDL_NUM_SCANCODES ; ++n)
 	keystates[n] = newstate[(int)keystates[n]];
 }
 
@@ -287,10 +287,10 @@ static int retrievemousecommand(void)
     switch (mouseinfo.state) {
       case KS_PRESSED:
 	mouseinfo.state = KS_OFF;
-	if (mouseinfo.button == SDL_BUTTON_WHEELDOWN)
-	    return CmdNext;
-	if (mouseinfo.button == SDL_BUTTON_WHEELUP)
-	    return CmdPrev;
+	// if (mouseinfo.button == SDL_BUTTON_WHEELDOWN)
+	//     return CmdNext;
+	// if (mouseinfo.button == SDL_BUTTON_WHEELUP)
+	//     return CmdPrev;
 	if (mouseinfo.button == SDL_BUTTON_LEFT) {
 	    n = windowmappos(mouseinfo.x, mouseinfo.y);
 	    if (n >= 0) {
@@ -329,10 +329,10 @@ int anykey(void)
     for (;;) {
 	resetkeystates();
 	eventupdate(TRUE);
-	for (n = 0 ; n < SDLK_LAST ; ++n)
+	for (n = 0 ; n < SDL_NUM_SCANCODES ; ++n)
 	    if (keystates[n] == KS_STRUCK || keystates[n] == KS_PRESSED
 					  || keystates[n] == KS_REPEATING)
-		return n != 'q' && n != SDLK_ESCAPE;
+		return n != 'q' && n != SDL_SCANCODE_ESCAPE;
     }
 }
 
@@ -361,14 +361,14 @@ int input(int wait)
 		continue;
 	    if (kc->shift != -1)
 		if (kc->shift !=
-			(keystates[SDLK_LSHIFT] || keystates[SDLK_RSHIFT]))
+			(keystates[SDL_SCANCODE_LSHIFT] || keystates[SDL_SCANCODE_RSHIFT]))
 		    continue;
 	    if (kc->ctl != -1)
 		if (kc->ctl !=
-			(keystates[SDLK_LCTRL] || keystates[SDLK_RCTRL]))
+			(keystates[SDL_SCANCODE_LCTRL] || keystates[SDL_SCANCODE_RCTRL]))
 		    continue;
 	    if (kc->alt != -1)
-		if (kc->alt != (keystates[SDLK_LALT] || keystates[SDLK_RALT]))
+		if (kc->alt != (keystates[SDL_SCANCODE_LALT] || keystates[SDL_SCANCODE_RALT]))
 		    continue;
 
 	    if (n == KS_PRESSED || (kc->hold && n == KS_DOWN)) {
@@ -407,10 +407,12 @@ int input(int wait)
  */
 int setkeyboardrepeat(int enable)
 {
-    if (enable)
-	return SDL_EnableKeyRepeat(500, 75) == 0;
-    else
-	return SDL_EnableKeyRepeat(0, 0) == 0;
+    sdlg.keyboardRepeatEnabled = enable;
+ //    if (enable)
+	// return SDL_EnableKeyRepeat(500, 75) == 0;
+ //    else
+	// return SDL_EnableKeyRepeat(0, 0) == 0;
+    return TRUE;
 }
 
 /* Turn joystick behavior mode on or off. In joystick-behavior mode,
@@ -448,7 +450,7 @@ int _sdlinputinitialize(void)
     mergeable[CmdWest] = mergeable[CmdEast] = CmdNorth | CmdSouth;
 
     setkeyboardrepeat(TRUE);
-    SDL_EnableUNICODE(TRUE);
+    // SDL_EnableUNICODE(TRUE);
     return TRUE;
 }
 

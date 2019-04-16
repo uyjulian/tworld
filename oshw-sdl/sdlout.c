@@ -252,23 +252,57 @@ static int layoutscreen(void)
 static int createdisplay(void)
 {
     int	flags;
-
-    if (sdlg.screen) {
-	SDL_FreeSurface(sdlg.screen);
-	sdlg.screen = NULL;
+    if (sdlg.texture) {
+    SDL_DestroyTexture(sdlg.texture);
+    sdlg.texture = NULL;   
     }
-    flags = SDL_SWSURFACE | SDL_ANYFORMAT;
+    if (sdlg.screen) {
+    SDL_FreeSurface(sdlg.screen);
+    sdlg.screen = NULL;   
+    }
+    if (sdlg.renderer) {
+    SDL_DestroyRenderer(sdlg.renderer);
+    sdlg.renderer = NULL;   
+    }
+    if (sdlg.window) {
+	SDL_DestroyWindow(sdlg.window);
+	sdlg.window = NULL;
+    }
+    flags = 0;
     if (fullscreen)
-	flags |= SDL_FULLSCREEN;
-    if (!(sdlg.screen = SDL_SetVideoMode(screenw, screenh, 32, flags))) {
+	flags |= SDL_WINDOW_FULLSCREEN;
+    if (!(sdlg.window = SDL_CreateWindow("Tile World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenw, screenh, flags))) {
 	errmsg(NULL, "cannot open %dx%d display: %s\n",
 		     screenw, screenh, SDL_GetError());
 	return FALSE;
     }
-    if (sdlg.screen->w != screenw || sdlg.screen->h != screenh)
-	warn("requested a %dx%d display, got %dx%d instead",
-	     sdlg.screen->w, sdlg.screen->h);
+    if (!(sdlg.renderer = SDL_CreateRenderer(sdlg.window, -1, 0))) {
+    errmsg(NULL, "cannot open %dx%d renderer: %s\n",
+             screenw, screenh, SDL_GetError());
+    return FALSE;
+    }
+    if (!(sdlg.screen = SDL_CreateRGBSurface(0, screenw, screenh, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000))) {
+    errmsg(NULL, "cannot open %dx%d window surface: %s\n",
+             screenw, screenh, SDL_GetError());
+    return FALSE;
+    }
+    if (!(sdlg.texture = SDL_CreateTexture(sdlg.renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, screenw, screenh))) {
+    errmsg(NULL, "cannot open %dx%d window surface: %s\n",
+             screenw, screenh, SDL_GetError());
+    return FALSE;
+    }
+ //    if (sdlg.screen->w != screenw || sdlg.screen->h != screenh)
+	// warn("requested a %dx%d display, got %dx%d instead",
+	//      sdlg.screen->w, sdlg.screen->h);
     return TRUE;
+}
+
+static void updatedisplay(void)
+{
+    SDL_UpdateTexture(sdlg.texture, NULL, sdlg.screen->pixels, sdlg.screen->pitch);
+    SDL_RenderClear(sdlg.renderer);
+    SDL_RenderCopy(sdlg.renderer, sdlg.texture, NULL, NULL);
+    SDL_RenderPresent(sdlg.renderer);
 }
 
 /* Wipe the display.
@@ -348,8 +382,7 @@ static void displaymsg(int update)
     }
     puttext(&messageloc, msgdisplay.msg, msgdisplay.msglen, f);
     if (update)
-	SDL_UpdateRect(sdlg.screen, messageloc.x, messageloc.y,
-				    messageloc.w, messageloc.h);
+	updatedisplay();
 }
 
 /* Change the current message-display message. msecs gives the number
@@ -607,8 +640,7 @@ static int displayprompticon(int completed)
     src.w = PROMPTICONW;
     src.h = PROMPTICONH;
     SDL_BlitSurface(prompticons, &src, sdlg.screen, &promptloc);
-    SDL_UpdateRect(sdlg.screen, promptloc.x, promptloc.y,
-				promptloc.w, promptloc.h);
+    updatedisplay();
     return TRUE;
 }
 
@@ -681,13 +713,8 @@ int displaygame(void const *state, int timeleft, int besttime)
     displaymapview(state);
     displayinfo(state, timeleft, besttime);
     displaymsg(FALSE);
-    if (fullredraw) {
-	SDL_UpdateRect(sdlg.screen, 0, 0, 0, 0);
-	fullredraw = FALSE;
-    } else {
-	SDL_UpdateRects(sdlg.screen,
-			sizeof locrects / sizeof *locrects, locrects);
-    }
+    updatedisplay();
+    fullredraw = FALSE;
     return TRUE;
 }
 
@@ -717,8 +744,7 @@ int displayendmessage(int basescore, int timescore, long totalscore,
 	puttext(&rect, decimal(basescore, 5), -1, PT_RIGHT | PT_UPDATERECT);
 	puttext(&rect, decimal(fullscore, 5), -1, PT_RIGHT | PT_UPDATERECT);
 	puttext(&rect, decimal(totalscore, 7), -1, PT_RIGHT | PT_UPDATERECT);
-	SDL_UpdateRect(sdlg.screen, hintloc.x, hintloc.y,
-				    hintloc.w, hintloc.h);
+	updatedisplay();
     }
     return displayprompticon(completed);
 }
@@ -821,7 +847,7 @@ int displaytextscroll(char const *title, char const **paragraphs,
 	    thumb.y = area.y + topline * (area.h - thumb.h) / maxtop;
 	    SDL_FillRect(sdlg.screen, &thumb, halfcolor(sdlg.textclr));
 	}
-	SDL_UpdateRect(sdlg.screen, 0, 0, 0, 0);
+	updatedisplay();
 	n = SCROLL_NOP;
     } while ((*inputcallback)(&n));
 
@@ -856,7 +882,7 @@ int displaytable(char const *title, tablespec const *table, int completed)
     free(cols);
 
     displayprompticon(completed);
-    SDL_UpdateRect(sdlg.screen, 0, 0, 0, 0);
+    updatedisplay();
     return TRUE;
 }
 
@@ -913,7 +939,7 @@ int displaytiletable(char const *title,
 
     displayprompticon(completed);
 
-    SDL_UpdateRect(sdlg.screen, 0, 0, 0, 0);
+    updatedisplay();
 
     return TRUE;
 }
@@ -998,7 +1024,7 @@ int displaylist(char const *title, tablespec const *table, int *idx,
 		    + topitem * (area.h - thumb.h) / (itemcount - linecount);
 	    SDL_FillRect(sdlg.screen, &thumb, halfcolor(sdlg.textclr));
 	}
-	SDL_UpdateRect(sdlg.screen, 0, 0, 0, 0);
+	updatedisplay();
 
 	n = SCROLL_NOP;
     } while ((*inputcallback)(&n));
@@ -1058,7 +1084,7 @@ int displayinputprompt(char const *prompt, char *input, int maxlen,
 	input[len] = '_';
 	puttext(&inputrect, input, len + 1, PT_CENTER);
 	input[len] = '\0';
-	SDL_UpdateRect(sdlg.screen, area.x, area.y, area.w, area.h);
+	updatedisplay();
 	ch = (*inputcallback)();
 	if (ch == '\n' || ch < 0)
 	    break;

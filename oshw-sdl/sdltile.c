@@ -216,12 +216,12 @@ static SDL_Surface *newsurface(int w, int h, int transparency)
 
     if (transparency) {
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-	s = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_SRCALPHA | SDL_RLEACCEL,
+	s = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_RLEACCEL,
 				 w, h, 32,
 				 0xFF000000, 0x00FF0000,
 				 0x0000FF00, 0x000000FF);
 #else
-	s = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_SRCALPHA | SDL_RLEACCEL,
+	s = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_RLEACCEL,
 				 w, h, 32,
 				 0x000000FF, 0x0000FF00,
 				 0x00FF0000, 0xFF000000);
@@ -236,9 +236,9 @@ static SDL_Surface *newsurface(int w, int h, int transparency)
     }
     if (!s)
 	die("couldn't create surface: %s", SDL_GetError());
-    if (!transparency && sdlg.screen->format->palette)
-	SDL_SetColors(s, sdlg.screen->format->palette->colors,
-		      0, sdlg.screen->format->palette->ncolors);
+ //    if (!transparency && sdlg.screen->format->palette)
+	// SDL_SetColors(s, sdlg.screen->format->palette->colors,
+	// 	      0, sdlg.screen->format->palette->ncolors);
     return s;
 }
 
@@ -460,7 +460,7 @@ static SDL_Surface *extractkeyedtile(SDL_Surface *src,
     dest = newsurface(wimg, himg, TRUE);
     SDL_FillRect(dest, NULL, SDL_MapRGBA(dest->format,
 					 0, 0, 0, SDL_ALPHA_TRANSPARENT));
-    SDL_SetColorKey(src, SDL_SRCCOLORKEY, transpclr);
+    SDL_SetColorKey(src, SDL_TRUE, transpclr);
     rect.x = ximg;
     rect.y = yimg;
     rect.w = dest->w;
@@ -469,11 +469,11 @@ static SDL_Surface *extractkeyedtile(SDL_Surface *src,
     SDL_SetColorKey(src, 0, 0);
 
     temp = dest;
-    dest = SDL_DisplayFormatAlpha(temp);
+    dest = SDL_ConvertSurfaceFormat(temp, SDL_PIXELFORMAT_RGBA8888, 0);
     SDL_FreeSurface(temp);
     if (!dest)
 	die("%s", SDL_GetError());
-    SDL_SetAlpha(dest, SDL_SRCALPHA | SDL_RLEACCEL, 0);
+    // SDL_SetSurfaceAlphaMod(dest, 0);
     return dest;
 }
 
@@ -493,7 +493,7 @@ static SDL_Surface *extractemptytile(SDL_Surface *src,
 
     if (tileptr[Empty].opaque[0])
 	SDL_BlitSurface(tileptr[Empty].opaque[0], NULL, dest, NULL);
-    SDL_SetColorKey(src, SDL_SRCCOLORKEY, transpclr);
+    SDL_SetColorKey(src, SDL_TRUE, transpclr);
     rect.x = ximg;
     rect.y = yimg;
     rect.w = dest->w;
@@ -502,7 +502,7 @@ static SDL_Surface *extractemptytile(SDL_Surface *src,
     SDL_SetColorKey(src, 0, 0);
 
     temp = dest;
-    dest = SDL_DisplayFormat(temp);
+    dest = SDL_ConvertSurfaceFormat(temp, SDL_PIXELFORMAT_RGBA8888, 0);
     SDL_FreeSurface(temp);
     if (!dest)
 	die("%s", SDL_GetError());
@@ -554,11 +554,11 @@ static SDL_Surface *extractmaskedtile(SDL_Surface *src,
 	SDL_UnlockSurface(dest);
 
     temp = dest;
-    dest = SDL_DisplayFormatAlpha(temp);
+    dest = SDL_ConvertSurfaceFormat(temp, SDL_PIXELFORMAT_RGBA8888, 0);
     SDL_FreeSurface(temp);
     if (!dest)
 	die("%s", SDL_GetError());
-    SDL_SetAlpha(dest, SDL_SRCALPHA | SDL_RLEACCEL, 0);
+    // SDL_SetSurfaceAlphaMod(dest, 0);
     return dest;
 }
 
@@ -1079,9 +1079,9 @@ int loadtileset(char const *filename, int complain)
 	    errmsg(filename, "cannot read bitmap: %s", SDL_GetError());
 	return FALSE;
     }
-    if (tiles->format->palette && sdlg.screen->format->palette)
-	SDL_SetColors(sdlg.screen, tiles->format->palette->colors,
-		      0, tiles->format->palette->ncolors);
+ //    if (tiles->format->palette && sdlg.screen->format->palette)
+	// SDL_SetColors(sdlg.screen, tiles->format->palette->colors,
+	// 	      0, tiles->format->palette->ncolors);
 
     if (tiles->w % 2 != 0) {
 	freetileset();
