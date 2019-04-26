@@ -5,6 +5,9 @@
  */
 
 #include	<stdlib.h>
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 #include	"SDL.h"
 #include	"sdlgen.h"
 
@@ -85,7 +88,11 @@ int waitfortick(void)
     while (ms < 0)
 	ms += mspertick;
 
+#ifdef __EMSCRIPTEN__
+    emscripten_sleep(ms);
+#else
     SDL_Delay(ms);
+#endif
 
     ++utick;
     nexttickat += mspertick;

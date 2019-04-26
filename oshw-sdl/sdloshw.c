@@ -7,6 +7,9 @@
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<string.h>
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 #include	"SDL.h"
 #include	"sdlgen.h"
 #include	"../err.h"
@@ -18,7 +21,7 @@ oshwglobals	sdlg;
 /* This is an automatically-generated file, which contains a
  * representation of the program's icon.
  */
-#include	"ccicon.c"
+// #include	"ccicon.c"
 
 /* Dispatch all events sitting in the SDL event queue. 
  */
@@ -28,21 +31,39 @@ static void _eventupdate(int wait)
     SDL_Event	event;
     int		x, y;
 
-    if (wait)
-	SDL_WaitEvent(NULL);
-    SDL_PumpEvents();
-    while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT)) {
+    if (wait) {
+#ifdef __EMSCRIPTEN__
+    	int broke = FALSE;
+	    for (;;) {
+	        SDL_PumpEvents();
+	        switch (SDL_PeepEvents(&event, 1, SDL_PEEKEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT)) {
+	        case 0:
+	            emscripten_sleep(10);
+	            break;
+	        default:
+	            /* Has events */
+	            broke = TRUE;
+	        }
+	        if (broke)
+	        	break;
+	    }
+#else
+		SDL_WaitEvent(NULL);
+#endif
+	}
+
+    while (SDL_PollEvent(&event)) {
 	switch (event.type) {
 	  case SDL_KEYDOWN:
 	    if (event.key.repeat && !(sdlg.keyboardRepeatEnabled)) 
 	    	break;
-	    if (mousevisible) {
-		SDL_GetMouseState(&x, &y);
-		if (windowmappos(x, y) < 0) {
-		    SDL_ShowCursor(SDL_DISABLE);
-		    mousevisible = FALSE;
-		}
-	    }
+	 //    if (mousevisible) {
+		// SDL_GetMouseState(&x, &y);
+		// if (windowmappos(x, y) < 0) {
+		//     SDL_ShowCursor(SDL_DISABLE);
+		//     mousevisible = FALSE;
+		// }
+	 //    }
 
 	    keyeventcallback(event.key.keysym.scancode, TRUE);
 	 //    if (event.key.keysym.unicode
@@ -52,31 +73,33 @@ static void _eventupdate(int wait)
 	 //    }
 	    break;
 	  case SDL_KEYUP:
-	    if (mousevisible) {
-		SDL_GetMouseState(&x, &y);
-		if (windowmappos(x, y) < 0) {
-		    SDL_ShowCursor(SDL_DISABLE);
-		    mousevisible = FALSE;
-		}
-	    }
+	    if (event.key.repeat && !(sdlg.keyboardRepeatEnabled)) 
+	    	break;
+	 //    if (mousevisible) {
+		// SDL_GetMouseState(&x, &y);
+		// if (windowmappos(x, y) < 0) {
+		//     SDL_ShowCursor(SDL_DISABLE);
+		//     mousevisible = FALSE;
+		// }
+	 //    }
 	    keyeventcallback(event.key.keysym.scancode, FALSE);
 	    break;
 	  case SDL_MOUSEBUTTONDOWN:
 	  case SDL_MOUSEBUTTONUP:
-	    if (!mousevisible) {
-		SDL_ShowCursor(SDL_ENABLE);
-		mousevisible = TRUE;
-	    }
+	 //    if (!mousevisible) {
+		// SDL_ShowCursor(SDL_ENABLE);
+		// mousevisible = TRUE;
+	 //    }
 	    mouseeventcallback(event.button.x, event.button.y,
 			       event.button.button,
 			       event.type == SDL_MOUSEBUTTONDOWN);
 	    break;
-	  case SDL_MOUSEMOTION:
-	    if (!mousevisible) {
-		SDL_ShowCursor(SDL_ENABLE);
-		mousevisible = TRUE;
-	    }
-	    break;
+	 //  case SDL_MOUSEMOTION:
+	 //    if (!mousevisible) {
+		// SDL_ShowCursor(SDL_ENABLE);
+		// mousevisible = TRUE;
+	 //    }
+	 //    break;
 	  case SDL_QUIT:
 	    exit(EXIT_SUCCESS);
 	}

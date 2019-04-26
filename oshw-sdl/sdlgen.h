@@ -102,6 +102,11 @@ typedef	struct oshwglobals
     SDL_Surface* (*getcellimagefunc)(SDL_Rect *rect,
 				     int top, int bot, int timerval);
 
+    void (*rendercellimagefunc)(SDL_Rect *rect, SDL_Rect *destrect,
+                     int top, int bot, int timerval);
+    void (*rendercreatureimagefunc)(SDL_Rect *displayloc, SDL_Rect *destrect,
+                      int id, int dir, int moving, int frame);
+
     /* Return a pointer to a tile image for the given creature or
      * animation sequence with the specified direction, sub-position,
      * and animation frame.
@@ -166,6 +171,8 @@ extern oshwglobals sdlg;
 #define	scrollmove		(*sdlg.scrollmovefunc)
 #define	getcreatureimage	(*sdlg.getcreatureimagefunc)
 #define	getcellimage		(*sdlg.getcellimagefunc)
+#define rendercellimage        (*sdlg.rendercellimagefunc)
+#define rendercreatureimage        (*sdlg.rendercreatureimagefunc)
 
 /* The initialization functions for the various modules.
  */
@@ -176,5 +183,6 @@ extern int _sdltileinitialize(void);
 extern int _sdlinputinitialize(void);
 extern int _sdloutputinitialize(int fullscreen);
 extern int _sdlsfxinitialize(int silence, int soundbufsize);
+extern void surfacetotexture(void);
 
 #endif

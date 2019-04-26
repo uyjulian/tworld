@@ -39,6 +39,8 @@
 typedef	struct tilemap {
     SDL_Surface	       *opaque[16];	/* one or more opaque images */
     SDL_Surface	       *transp[16];	/* one or more transparent images */
+    SDL_Texture        *opaquet[16]; /* one or more opaque textures */
+    SDL_Texture        *transpt[16]; /* one or more transparent textures */
     char		celcount;	/* count of animated images */
     char		transpsize;	/* flags for the transparent size */
 } tilemap;
@@ -216,18 +218,18 @@ static SDL_Surface *newsurface(int w, int h, int transparency)
 
     if (transparency) {
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-	s = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_RLEACCEL,
+	s = SDL_CreateRGBSurface(0,
 				 w, h, 32,
 				 0xFF000000, 0x00FF0000,
 				 0x0000FF00, 0x000000FF);
 #else
-	s = SDL_CreateRGBSurface(SDL_SWSURFACE | SDL_RLEACCEL,
+	s = SDL_CreateRGBSurface(0,
 				 w, h, 32,
 				 0x000000FF, 0x0000FF00,
 				 0x00FF0000, 0xFF000000);
 #endif
     } else {
-	s = SDL_CreateRGBSurface(SDL_SWSURFACE,
+	s = SDL_CreateRGBSurface(0,
 				 w, h, sdlg.screen->format->BitsPerPixel,
 				 sdlg.screen->format->Rmask,
 				 sdlg.screen->format->Gmask,
@@ -289,6 +291,40 @@ static int settilesize(int w, int h)
  * Functions for using tile images.
  */
 
+
+static int getclippedtile(SDL_Rect *rect, SDL_Rect *displayloc, SDL_Rect *srcrect, SDL_Rect *destrect)
+{
+    int xoff, yoff, w, h;
+
+    xoff = 0;
+    if (rect->x < displayloc->x)
+        xoff = displayloc->x - rect->x;
+    yoff = 0;
+    if (rect->y < displayloc->y)
+        yoff = displayloc->y - rect->y;
+    w = rect->w - xoff;
+    if (rect->x + rect->w > displayloc->x + displayloc->w)
+        w -= (rect->x + rect->w) - (displayloc->x + displayloc->w);
+    h = rect->h - yoff;
+    if (rect->y + rect->h > displayloc->y + displayloc->h)
+        h -= (rect->y + rect->h) - (displayloc->y + displayloc->h);
+    if (w <= 0 || h <= 0)
+        return 0;
+
+    {
+    srcrect->x = xoff;
+    srcrect->y = yoff;
+    srcrect->w = w;
+    srcrect->h = h;
+    destrect->x = rect->x + xoff;
+    destrect->y = rect->y + yoff;
+    destrect->w = w;
+    destrect->h = h;
+    }
+    return 1;
+}
+
+
 /* Overlay a transparent tile image into the given tile-sized buffer.
  * index supplies the index of the transparent image.
  */
@@ -303,6 +339,19 @@ static void addtransparenttile(SDL_Surface *dest, int id, int index)
     if (tileptr[id].transpsize & SIZE_EXTUP)
 	rect.y += sdlg.htile;
     SDL_BlitSurface(src, &rect, dest, NULL);
+}
+
+static void rendertransparenttile(SDL_Rect* rect, SDL_Rect* destrect, int id, int index)
+{
+    SDL_Texture        *src;
+
+    src = tileptr[id].transpt[index];
+    if (tileptr[id].transpsize & SIZE_EXTLEFT)
+    rect->x += sdlg.wtile;
+    if (tileptr[id].transpsize & SIZE_EXTUP)
+    rect->y += sdlg.htile;
+
+    SDL_RenderCopy(sdlg.renderer, src, rect, destrect);
 }
 
 /* Return a surface for the given creature or animation. rect is
@@ -396,6 +445,101 @@ static SDL_Surface *_getcellimage(SDL_Rect *rect,
     addtransparenttile(dest, top, nt);
 
     return dest;
+}
+
+static void _rendercellimage(SDL_Rect *displayloc, SDL_Rect *detrect,
+                  int top, int bot, int timerval)
+{
+    SDL_Surface        *dest;
+    int         nt, nb;
+
+    if (!tileptr[top].celcount)
+    die("map element %02X has no suitable image", top);
+
+    if (detrect) {
+    detrect->w = sdlg.wtile;
+    detrect->h = sdlg.htile;
+    }
+
+    SDL_Rect        rect = { 0, 0, 0, 0 };
+    SDL_Rect        destrect = { 0, 0, 0, 0 };
+    if (!getclippedtile(detrect, displayloc, &rect, &destrect))
+        return;
+
+    nt = (timerval + 1) % tileptr[top].celcount;
+    if (bot == Nothing || bot == Empty || !tileptr[top].transpt[0]) {
+    if (tileptr[top].opaquet[nt]) {
+        SDL_RenderCopy(sdlg.renderer, tileptr[top].opaquet[nt], &rect, &destrect);
+        return;
+    }
+    SDL_RenderCopy(sdlg.renderer, tileptr[Empty].opaquet[0], &rect, &destrect);
+    rendertransparenttile(&rect, &destrect, top, nt);
+    return;
+    }
+
+    if (!tileptr[bot].celcount)
+    die("map element %02X has no suitable image", bot);
+    nb = (timerval + 1) % tileptr[bot].celcount;
+    if (tileptr[bot].opaquet[nb]) {
+    SDL_RenderCopy(sdlg.renderer, tileptr[bot].opaquet[nb], &rect, &destrect);
+    } else {
+    SDL_RenderCopy(sdlg.renderer, tileptr[Empty].opaquet[0], &rect, &destrect);
+    rendertransparenttile(&rect, &destrect, bot, nt);
+    }
+    rendertransparenttile(&rect, &destrect, top, nt);
+
+    return;
+}
+
+static void _rendercreatureimage(SDL_Rect *displayloc, SDL_Rect *detrect,
+                      int id, int dir, int moving, int frame)
+{
+    SDL_Surface        *s;
+    SDL_Texture        *t;
+    tilemap const      *q;
+    int         n;
+
+    if (!detrect)
+    die("getcreatureimage() called without a rect");
+
+    q = tileptr + id;
+    if (!isanimation(id))
+    q += diridx(dir);
+
+    if (!q->transpsize || isanimation(id)) {
+    if (moving > 0) {
+        switch (dir) {
+          case NORTH:   detrect->y += moving * sdlg.htile / 8; break;
+          case WEST:    detrect->x += moving * sdlg.wtile / 8; break;
+          case SOUTH:   detrect->y -= moving * sdlg.htile / 8; break;
+          case EAST:    detrect->x -= moving * sdlg.wtile / 8; break;
+        }
+    }
+    }
+    if (q->transpsize) {
+    if (q->transpsize & SIZE_EXTLEFT)
+        detrect->x -= sdlg.wtile;
+    if (q->transpsize & SIZE_EXTUP)
+        detrect->y -= sdlg.htile;
+    }
+
+    n = q->celcount > 1 ? frame : 0;
+    if (n >= q->celcount)
+    die("requested cel #%d from a %d-cel sequence (%d+%d)",
+        n, q->celcount, id, diridx(dir));
+    s = q->transp[n] ? q->transp[n] : q->opaque[n];
+    t = q->transpt[n] ? q->transpt[n] : q->opaquet[n];
+
+    detrect->w = s->w;
+    detrect->h = s->h;
+
+
+    SDL_Rect        rect = { 0, 0, 0, 0 };
+    SDL_Rect        destrect = { 0, 0, 0, 0 };
+    if (!getclippedtile(detrect, displayloc, &rect, &destrect))
+        return;
+
+    SDL_RenderCopy(sdlg.renderer, t, &rect, &destrect);
 }
 
 /*
@@ -1053,7 +1197,9 @@ void freetileset(void)
 	tileptr[n].transpsize = 0;
 	for (m = 0 ; m < 16 ; ++m) {
 	    tileptr[n].opaque[m] = NULL;
+        tileptr[n].opaquet[m] = NULL;
 	    tileptr[n].transp[m] = NULL;
+        tileptr[n].transpt[m] = NULL;
 	}
     }
     sdlg.wtile = 0;
@@ -1061,6 +1207,29 @@ void freetileset(void)
     sdlg.cptile = 0;
     opaquetile = NULL;
     freerememberedsurfaces();
+}
+
+void surfacetotexture(void) {
+    for (int n = 0 ; n < (int)(sizeof tileptr / sizeof *tileptr) ; ++n) {
+        // if (tileptr[n].celcount) {
+    for (int m = 0 ; m < 16 ; ++m) {
+        if (tileptr[n].opaque[m])
+            if (!tileptr[n].opaquet[m]) {
+                tileptr[n].opaquet[m] = SDL_CreateTextureFromSurface(sdlg.renderer, tileptr[n].opaque[m]);
+                if (tileptr[n].opaquet[m] == NULL) {
+    fprintf(stderr, "CreateTextureFromSurface failed: %s\n", SDL_GetError());
+}
+            }
+        if (tileptr[n].transp[m])
+            if (!tileptr[n].transpt[m]) {
+                tileptr[n].transpt[m] = SDL_CreateTextureFromSurface(sdlg.renderer, tileptr[n].transp[m]);
+                if (tileptr[n].transpt[m] == NULL) {
+    fprintf(stderr, "CreateTextureFromSurface failed: %s\n", SDL_GetError());
+}
+            }
+    }
+    // }
+}
 }
 
 /* Load the set of tile images stored in the given bitmap. Error
@@ -1102,6 +1271,9 @@ int loadtileset(char const *filename, int complain)
 			     tiles->w, tiles->h);
 	f = FALSE;
     }
+    surfacetotexture();
+
+    
 
     SDL_FreeSurface(tiles);
     return f;
@@ -1113,5 +1285,8 @@ int _sdltileinitialize(void)
 {
     sdlg.getcreatureimagefunc = _getcreatureimage;
     sdlg.getcellimagefunc = _getcellimage;
+    sdlg.rendercreatureimagefunc = _rendercreatureimage;
+    sdlg.rendercellimagefunc = _rendercellimage;
+    
     return TRUE;
 }

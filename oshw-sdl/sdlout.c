@@ -253,6 +253,7 @@ static int createdisplay(void)
 {
     int	flags;
     if (sdlg.texture) {
+        // return TRUE;
     SDL_DestroyTexture(sdlg.texture);
     sdlg.texture = NULL;   
     }
@@ -260,27 +261,34 @@ static int createdisplay(void)
     SDL_FreeSurface(sdlg.screen);
     sdlg.screen = NULL;   
     }
-    if (sdlg.renderer) {
-    SDL_DestroyRenderer(sdlg.renderer);
-    sdlg.renderer = NULL;   
-    }
-    if (sdlg.window) {
-	SDL_DestroyWindow(sdlg.window);
-	sdlg.window = NULL;
-    }
+ //    if (sdlg.renderer) {
+ //    SDL_DestroyRenderer(sdlg.renderer);
+ //    sdlg.renderer = NULL;   
+ //    }
+ //    if (sdlg.window) {
+	// SDL_DestroyWindow(sdlg.window);
+	// sdlg.window = NULL;
+ //    }
     flags = 0;
     if (fullscreen)
 	flags |= SDL_WINDOW_FULLSCREEN;
-    if (!(sdlg.window = SDL_CreateWindow("Tile World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenw, screenh, flags))) {
-	errmsg(NULL, "cannot open %dx%d display: %s\n",
-		     screenw, screenh, SDL_GetError());
-	return FALSE;
+    if (!sdlg.window) {
+        if (!(sdlg.window = SDL_CreateWindow("Tile World", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenw, screenh, flags))) {
+    	errmsg(NULL, "cannot open %dx%d display: %s\n",
+    		     screenw, screenh, SDL_GetError());
+    	return FALSE;
+        }
     }
-    if (!(sdlg.renderer = SDL_CreateRenderer(sdlg.window, -1, 0))) {
-    errmsg(NULL, "cannot open %dx%d renderer: %s\n",
-             screenw, screenh, SDL_GetError());
-    return FALSE;
+    else {
+        SDL_SetWindowSize(sdlg.window, screenw, screenh);
     }
+    SDL_SetWindowFullscreen(sdlg.window, flags);
+    if (!sdlg.renderer)
+        if (!(sdlg.renderer = SDL_CreateRenderer(sdlg.window, -1, 0))) {
+        errmsg(NULL, "cannot open %dx%d renderer: %s\n",
+                 screenw, screenh, SDL_GetError());
+        return FALSE;
+        }
     if (!(sdlg.screen = SDL_CreateRGBSurface(0, screenw, screenh, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000))) {
     errmsg(NULL, "cannot open %dx%d window surface: %s\n",
              screenw, screenh, SDL_GetError());
@@ -300,16 +308,17 @@ static int createdisplay(void)
 static void updatedisplay(void)
 {
     SDL_UpdateTexture(sdlg.texture, NULL, sdlg.screen->pixels, sdlg.screen->pitch);
-    SDL_RenderClear(sdlg.renderer);
+    SDL_SetTextureBlendMode(sdlg.texture, SDL_BLENDMODE_BLEND);
     SDL_RenderCopy(sdlg.renderer, sdlg.texture, NULL, NULL);
     SDL_RenderPresent(sdlg.renderer);
+    SDL_RenderClear(sdlg.renderer);
 }
 
 /* Wipe the display.
  */
 void cleardisplay(void)
 {
-    SDL_FillRect(sdlg.screen, NULL, bkgndcolor(sdlg.textclr));
+    SDL_FillRect(sdlg.screen, NULL, 0);
     fullredraw = TRUE;
     mapvieworigin = -1;
 }
@@ -466,7 +475,7 @@ static void displayshutter(void)
  */
 static void displaymapview(gamestate const *state)
 {
-    SDL_Rect		rect;
+    SDL_Rect		rect, srcrect, dstrect;
     SDL_Surface	       *s;
     creature const     *cr;
     int			xdisppos, ydisppos;
@@ -507,12 +516,11 @@ static void displaymapview(gamestate const *state)
 	    pos = y * CXGRID + x;
 	    rect.x = xorigin + x * sdlg.wtile;
 	    rect.y = yorigin + y * sdlg.htile;
-	    s = getcellimage(&rect,
-			     state->map[pos].top.id,
-			     state->map[pos].bot.id,
-			     (state->statusflags & SF_NOANIMATION) ?
-						-1 : state->currenttime);
-	    drawclippedtile(&rect, s);
+        rendercellimage(&displayloc, &rect,
+                 state->map[pos].top.id,
+                 state->map[pos].bot.id,
+                 (state->statusflags & SF_NOANIMATION) ?
+                        -1 : state->currenttime);
 	}
     }
 
@@ -529,8 +537,7 @@ static void displaymapview(gamestate const *state)
 	    continue;
 	rect.x = xorigin + x * sdlg.wtile;
 	rect.y = yorigin + y * sdlg.htile;
-	s = getcreatureimage(&rect, cr->id, cr->dir, cr->moving, cr->frame);
-	drawclippedtile(&rect, s);
+    rendercreatureimage(&displayloc, &rect, cr->id, cr->dir, cr->moving, cr->frame);
     }
 }
 
@@ -822,7 +829,7 @@ int displaytextscroll(char const *title, char const **paragraphs,
 	    topline = 0;
 	else if (topline > maxtop)
 	    topline = maxtop;
-	SDL_FillRect(sdlg.screen, &area, bkgndcolor(sdlg.textclr));
+	SDL_FillRect(sdlg.screen, &area, 0);
 	rect = area;
 	n = topline;
 	for (i = 0 ; i < ppcount ; ++i) {
@@ -843,7 +850,7 @@ int displaytextscroll(char const *title, char const **paragraphs,
 	    }
 	}
 	if (maxtop > 0) {
-	    SDL_FillRect(sdlg.screen, &thumb, bkgndcolor(sdlg.textclr));
+	    SDL_FillRect(sdlg.screen, &thumb, 0);
 	    thumb.y = area.y + topline * (area.h - thumb.h) / maxtop;
 	    SDL_FillRect(sdlg.screen, &thumb, halfcolor(sdlg.textclr));
 	}
@@ -1011,7 +1018,7 @@ int displaylist(char const *title, tablespec const *table, int *idx,
 	}
 
 	n = 0;
-	SDL_FillRect(sdlg.screen, &area, bkgndcolor(sdlg.textclr));
+	SDL_FillRect(sdlg.screen, &area, 0);
 	memcpy(colstmp, cols, table->cols * sizeof *colstmp);
 	drawtablerow(table, colstmp, &n, 0);
 	for (j = 0 ; j < topitem ; ++j)
@@ -1019,7 +1026,7 @@ int displaylist(char const *title, tablespec const *table, int *idx,
 	for ( ; j < topitem + linecount && j < itemcount ; ++j)
 	    drawtablerow(table, colstmp, &n, j == index ? PT_HILIGHT : 0);
 	if (itemcount > linecount) {
-	    SDL_FillRect(sdlg.screen, &thumb, bkgndcolor(sdlg.textclr));
+	    SDL_FillRect(sdlg.screen, &thumb, 0);
 	    thumb.y = area.y
 		    + topitem * (area.h - thumb.h) / (itemcount - linecount);
 	    SDL_FillRect(sdlg.screen, &thumb, halfcolor(sdlg.textclr));
@@ -1070,12 +1077,12 @@ int displayinputprompt(char const *prompt, char *input, int maxlen,
     if (len > maxlen)
 	len = maxlen;
     for (;;) {
-	SDL_FillRect(sdlg.screen, &area, textcolor(sdlg.textclr));
+	SDL_FillRect(sdlg.screen, &area, 0);
 	++area.x;
 	++area.y;
 	area.w -= 2;
 	area.h -= 2;
-	SDL_FillRect(sdlg.screen, &area, bkgndcolor(sdlg.textclr));
+	SDL_FillRect(sdlg.screen, &area, 0);
 	--area.x;
 	--area.y;
 	area.w += 2;
@@ -1115,6 +1122,7 @@ int creategamedisplay(void)
 {
     if (!layoutscreen() || !createdisplay())
 	return FALSE;
+
     cleardisplay();
     return TRUE;
 }
