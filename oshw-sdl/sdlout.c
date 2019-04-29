@@ -284,7 +284,7 @@ static int createdisplay(void)
     }
     SDL_SetWindowFullscreen(sdlg.window, flags);
     if (!sdlg.renderer)
-        if (!(sdlg.renderer = SDL_CreateRenderer(sdlg.window, -1, 0))) {
+        if (!(sdlg.renderer = SDL_CreateRenderer(sdlg.window, -1, SDL_RENDERER_SOFTWARE))) {
         errmsg(NULL, "cannot open %dx%d renderer: %s\n",
                  screenw, screenh, SDL_GetError());
         return FALSE;
