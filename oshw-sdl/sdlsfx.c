@@ -380,7 +380,7 @@ int _sdlsfxinitialize(int silence, int _soundbufsize)
     if (_soundbufsize >= 0 && _soundbufsize < 6)
 	soundbufsize = _soundbufsize;
     initonomatopoeia();
-    if (enabled)
-	setaudiosystem(TRUE);
+ //    if (enabled)
+	// setaudiosystem(TRUE);
     return TRUE;
 }
