@@ -658,7 +658,7 @@ static int displayprompticon(int completed)
 /* Given a pixel's coordinates, return the integer identifying the
  * tile's position in the map, or -1 if the pixel is not on the map view.
  */
-int _windowmappos(int x, int y)
+int windowmappos(int x, int y)
 {
     if (mapvieworigin < 0)
 	return -1;
@@ -1132,7 +1132,6 @@ int creategamedisplay(void)
  */
 int _sdloutputinitialize(int _fullscreen)
 {
-    sdlg.windowmapposfunc = _windowmappos;
     fullscreen = _fullscreen;
 
     screenw = 640;

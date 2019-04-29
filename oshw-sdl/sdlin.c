@@ -173,7 +173,7 @@ static int mergeable[CmdKeyMoveLast + 1];
  * current behavior settings. Shift-type keys are always either on or
  * off.
  */
-static void _keyeventcallback(int scancode, int down)
+void keyeventcallback(int scancode, int down)
 {
     switch (scancode) {
       case SDL_SCANCODE_LSHIFT:
@@ -216,7 +216,7 @@ static void restartkeystates(void)
 	count = SDL_NUM_SCANCODES;
     for (n = 0 ; n < count ; ++n)
 	if (keyboard[n])
-	    _keyeventcallback(n, TRUE);
+	    keyeventcallback(n, TRUE);
 }
 
 /* Update the key states. This is done at the start of each polling
@@ -268,7 +268,7 @@ static void resetkeystates(void)
  * mouse buttons. Up events are ignored. Down events are stored to
  * be examined later.
  */
-static void _mouseeventcallback(int xpos, int ypos, int button, int down)
+void mouseeventcallback(int xpos, int ypos, int button, int down)
 {
     if (down) {
 	mouseinfo.state = KS_PRESSED;
@@ -443,9 +443,6 @@ int setkeyboardinputmode(int enable)
  */
 int _sdlinputinitialize(void)
 {
-    sdlg.keyeventcallbackfunc = _keyeventcallback;
-    sdlg.mouseeventcallbackfunc = _mouseeventcallback;
-
     mergeable[CmdNorth] = mergeable[CmdSouth] = CmdWest | CmdEast;
     mergeable[CmdWest] = mergeable[CmdEast] = CmdNorth | CmdSouth;
 

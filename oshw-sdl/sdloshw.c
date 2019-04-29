@@ -25,7 +25,7 @@ oshwglobals	sdlg;
 
 /* Dispatch all events sitting in the SDL event queue. 
  */
-static void _eventupdate(int wait)
+void eventupdate(int wait)
 {
     static int	mousevisible = TRUE;
     SDL_Event	event;
@@ -146,8 +146,6 @@ int oshwinitialize(int silence, int soundbufsize,
 		   int showhistogram, int fullscreen)
 {
     SDL_Surface	       *icon;
-
-    sdlg.eventupdatefunc = _eventupdate;
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 	errmsg(NULL, "Cannot initialize SDL system: %s\n", SDL_GetError());

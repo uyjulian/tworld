@@ -390,7 +390,7 @@ static void drawmultilinetext(SDL_Rect *rect, unsigned char const *text,
 
 /* Render a string of text.
  */
-static void _puttext(SDL_Rect *rect, char const *text, int len, int flags)
+void puttext(SDL_Rect *rect, char const *text, int len, int flags)
 {
     if (!sdlg.font.h)
 	die("no font available! (how did I get this far?)");
@@ -416,7 +416,7 @@ static void _puttext(SDL_Rect *rect, char const *text, int len, int flags)
  * function is essentially the same algorithm used within printtable()
  * in tworld.c
  */
-static SDL_Rect *_measuretable(SDL_Rect const *area, tablespec const *table)
+SDL_Rect *measuretable(SDL_Rect const *area, tablespec const *table)
 {
     SDL_Rect		       *colsizes;
     unsigned char const	       *p;
@@ -525,7 +525,7 @@ static SDL_Rect *_measuretable(SDL_Rect const *area, tablespec const *table)
 /* Render a single row of a table to the screen, using cols to locate
  * the entries in the individual columns.
  */
-static int _drawtablerow(tablespec const *table, SDL_Rect *cols,
+int drawtablerow(tablespec const *table, SDL_Rect *cols,
 			 int *row, int flags)
 {
     SDL_Rect			rect;
@@ -616,8 +616,5 @@ int loadfontfromfile(char const *filename, int complain)
 int _sdltextinitialize(void)
 {
     sdlg.font.h = 0;
-    sdlg.puttextfunc = _puttext;
-    sdlg.measuretablefunc = _measuretable;
-    sdlg.drawtablerowfunc = _drawtablerow;
     return TRUE;
 }

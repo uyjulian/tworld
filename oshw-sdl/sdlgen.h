@@ -62,117 +62,99 @@ typedef	struct oshwglobals
     SDL_Texture        *texture;     /* the texture */
     fontinfo		font;		/* the font */
     int keyboardRepeatEnabled;
-
-    /* 
-     * Shared functions.
-     */
-
-    /* Process all pending events. If wait is TRUE and no events are
-     * currently pending, the function blocks until an event arrives.
-     */
-    void (*eventupdatefunc)(int wait);
-
-    /* A callback function, to be called every time a keyboard key is
-     * pressed or released. scancode is an SDL key symbol. down is
-     * TRUE if the key was pressed or FALSE if it was released.
-     */
-    void (*keyeventcallbackfunc)(int scancode, int down);
-
-    /* A callback function, to be called when a mouse button is
-     * pressed or released. xpos and ypos give the mouse's location.
-     * button is the number of the mouse button. down is TRUE if the
-     * button was pressed or FALSE if it was released.
-     */
-    void (*mouseeventcallbackfunc)(int xpos, int ypos, int button, int down);
-
-    /* Given a pixel's coordinates, return an integer identifying the
-     * tile on the map view display under that pixel, or -1 if the
-     * pixel is not within the map view.
-     */
-    int (*windowmapposfunc)(int x, int y);
-
-    /* Return a pointer to an image of a cell with the two given
-     * tiles. If the top image is transparent, the composite image is
-     * created using the overlay buffer. (Thus the caller should be
-     * done using the image returned before calling this function
-     * again.) timerval should hold the time of the game, for
-     * rendering animated cell tiles, or -1 if the game has not
-     * started.
-     */
-    SDL_Surface* (*getcellimagefunc)(SDL_Rect *rect,
-				     int top, int bot, int timerval);
-
-    void (*rendercellimagefunc)(SDL_Rect *rect, SDL_Rect *destrect,
-                     int top, int bot, int timerval);
-    void (*rendercreatureimagefunc)(SDL_Rect *displayloc, SDL_Rect *destrect,
-                      int id, int dir, int moving, int frame);
-
-    /* Return a pointer to a tile image for the given creature or
-     * animation sequence with the specified direction, sub-position,
-     * and animation frame.
-     */
-    SDL_Surface* (*getcreatureimagefunc)(SDL_Rect *rect, int id, int dir,
-					 int moving, int frame);
-
-    /* Display a line (or more) of text in the program's font. The
-     * text is clipped to area if necessary. If area is taller than
-     * the font, the topmost line is used. len specifies the number of
-     * characters to render; -1 can be used if text is NUL-terminated.
-     * flags is some combination of PT_* flags defined above. When the
-     * PT_CALCSIZE flag is set, no drawing is done; instead the w and
-     * h fields of area area changed to define the smallest rectangle
-     * that encloses the text that would have been rendered. (If
-     * PT_MULTILINE is also set, only the h field is changed.) If
-     * PT_UPDATERECT is set instead, then the h field is changed, so
-     * as to exclude the rectangle that was drawn in.
-     */
-    void (*puttextfunc)(SDL_Rect *area, char const *text, int len, int flags);
-
-    /* Determine the widths necessary to display the columns of the
-     * given table. area specifies an enclosing rectangle for the
-     * complete table. The return value is an array of rectangles, one
-     * for each column of the table. The rectangles y-coordinates and
-     * heights are taken from area, and the x-coordinates and widths
-     * are calculated so as to best render the columns of the table in
-     * the given space. The caller has the responsibility of freeing
-     * the returned array.
-     */
-    SDL_Rect *(*measuretablefunc)(SDL_Rect const *area,
-				  tablespec const *table);
-
-    /* Draw a single row of the given table. cols is an array of
-     * rectangles, one for each column. Each rectangle is altered by
-     * the function as per puttext's PT_UPDATERECT behavior. row
-     * points to an integer indicating the first table entry of the
-     * row to display; upon return, this value is updated to point to
-     * the first entry following the row. flags can be set to PT_DIM
-     * and/or PT_HIGHLIGHT; the values will be applied to every entry
-     * in the row.
-     */
-    int (*drawtablerowfunc)(tablespec const *table, SDL_Rect *cols,
-			    int *row, int flags);
-
 } oshwglobals;
 
 /* oshw's structure of globals.
  */
 extern oshwglobals sdlg;
 
-/* Some convenience macros for the above functions.
+
+/* 
+ * Shared functions.
  */
-#define eventupdate		(*sdlg.eventupdatefunc)
-#define	keyeventcallback	(*sdlg.keyeventcallbackfunc)
-#define	mouseeventcallback	(*sdlg.mouseeventcallbackfunc)
-#define	windowmappos		(*sdlg.windowmapposfunc)
-#define	puttext			(*sdlg.puttextfunc)
-#define	measuretable		(*sdlg.measuretablefunc)
-#define	drawtablerow		(*sdlg.drawtablerowfunc)
-#define	createscroll		(*sdlg.createscrollfunc)
-#define	scrollmove		(*sdlg.scrollmovefunc)
-#define	getcreatureimage	(*sdlg.getcreatureimagefunc)
-#define	getcellimage		(*sdlg.getcellimagefunc)
-#define rendercellimage        (*sdlg.rendercellimagefunc)
-#define rendercreatureimage        (*sdlg.rendercreatureimagefunc)
+
+/* Process all pending events. If wait is TRUE and no events are
+ * currently pending, the function blocks until an event arrives.
+ */
+extern void eventupdate(int wait);
+
+/* A callback function, to be called every time a keyboard key is
+ * pressed or released. scancode is an SDL key symbol. down is
+ * TRUE if the key was pressed or FALSE if it was released.
+ */
+extern void keyeventcallback(int scancode, int down);
+
+/* A callback function, to be called when a mouse button is
+ * pressed or released. xpos and ypos give the mouse's location.
+ * button is the number of the mouse button. down is TRUE if the
+ * button was pressed or FALSE if it was released.
+ */
+extern void mouseeventcallback(int xpos, int ypos, int button, int down);
+
+/* Given a pixel's coordinates, return an integer identifying the
+ * tile on the map view display under that pixel, or -1 if the
+ * pixel is not within the map view.
+ */
+extern int windowmappos(int x, int y);
+
+/* Display a line (or more) of text in the program's font. The
+ * text is clipped to area if necessary. If area is taller than
+ * the font, the topmost line is used. len specifies the number of
+ * characters to render; -1 can be used if text is NUL-terminated.
+ * flags is some combination of PT_* flags defined above. When the
+ * PT_CALCSIZE flag is set, no drawing is done; instead the w and
+ * h fields of area area changed to define the smallest rectangle
+ * that encloses the text that would have been rendered. (If
+ * PT_MULTILINE is also set, only the h field is changed.) If
+ * PT_UPDATERECT is set instead, then the h field is changed, so
+ * as to exclude the rectangle that was drawn in.
+ */
+extern void puttext(SDL_Rect *rect, char const *text, int len, int flags);
+
+/* Determine the widths necessary to display the columns of the
+ * given table. area specifies an enclosing rectangle for the
+ * complete table. The return value is an array of rectangles, one
+ * for each column of the table. The rectangles y-coordinates and
+ * heights are taken from area, and the x-coordinates and widths
+ * are calculated so as to best render the columns of the table in
+ * the given space. The caller has the responsibility of freeing
+ * the returned array.
+ */
+extern SDL_Rect *measuretable(SDL_Rect const *area, tablespec const *table);
+
+/* Draw a single row of the given table. cols is an array of
+ * rectangles, one for each column. Each rectangle is altered by
+ * the function as per puttext's PT_UPDATERECT behavior. row
+ * points to an integer indicating the first table entry of the
+ * row to display; upon return, this value is updated to point to
+ * the first entry following the row. flags can be set to PT_DIM
+ * and/or PT_HIGHLIGHT; the values will be applied to every entry
+ * in the row.
+ */
+extern int drawtablerow(tablespec const *table, SDL_Rect *cols,
+             int *row, int flags);
+
+/* Return a pointer to a tile image for the given creature or
+ * animation sequence with the specified direction, sub-position,
+ * and animation frame.
+ */
+extern SDL_Surface *getcreatureimage(SDL_Rect *rect,
+                      int id, int dir, int moving, int frame);
+
+/* Return a pointer to an image of a cell with the two given
+ * tiles. If the top image is transparent, the composite image is
+ * created using the overlay buffer. (Thus the caller should be
+ * done using the image returned before calling this function
+ * again.) timerval should hold the time of the game, for
+ * rendering animated cell tiles, or -1 if the game has not
+ * started.
+ */
+extern SDL_Surface *getcellimage(SDL_Rect *rect,
+                  int top, int bot, int timerval);
+extern void rendercellimage(SDL_Rect *displayloc, SDL_Rect *detrect,
+                  int top, int bot, int timerval);
+extern void rendercreatureimage(SDL_Rect *displayloc, SDL_Rect *detrect,
+                      int id, int dir, int moving, int frame);
 
 /* The initialization functions for the various modules.
  */

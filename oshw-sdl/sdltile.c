@@ -361,7 +361,7 @@ static void rendertransparenttile(SDL_Rect* rect, SDL_Rect* destrect, int id, in
  * appropriately when the creature's image is larger than a single
  * tile.
  */
-static SDL_Surface *_getcreatureimage(SDL_Rect *rect,
+SDL_Surface *getcreatureimage(SDL_Rect *rect,
 				      int id, int dir, int moving, int frame)
 {
     SDL_Surface	       *s;
@@ -409,7 +409,7 @@ static SDL_Surface *_getcreatureimage(SDL_Rect *rect,
  * pixels, the image returned is constructed in a private surface). If
  * rect is not NULL, the width and height fields are filled in.
  */
-static SDL_Surface *_getcellimage(SDL_Rect *rect,
+SDL_Surface *getcellimage(SDL_Rect *rect,
 				  int top, int bot, int timerval)
 {
     SDL_Surface	       *dest;
@@ -447,7 +447,7 @@ static SDL_Surface *_getcellimage(SDL_Rect *rect,
     return dest;
 }
 
-static void _rendercellimage(SDL_Rect *displayloc, SDL_Rect *detrect,
+void rendercellimage(SDL_Rect *displayloc, SDL_Rect *detrect,
                   int top, int bot, int timerval)
 {
     SDL_Surface        *dest;
@@ -491,7 +491,7 @@ static void _rendercellimage(SDL_Rect *displayloc, SDL_Rect *detrect,
     return;
 }
 
-static void _rendercreatureimage(SDL_Rect *displayloc, SDL_Rect *detrect,
+void rendercreatureimage(SDL_Rect *displayloc, SDL_Rect *detrect,
                       int id, int dir, int moving, int frame)
 {
     SDL_Surface        *s;
@@ -1283,10 +1283,5 @@ int loadtileset(char const *filename, int complain)
  */
 int _sdltileinitialize(void)
 {
-    sdlg.getcreatureimagefunc = _getcreatureimage;
-    sdlg.getcellimagefunc = _getcellimage;
-    sdlg.rendercreatureimagefunc = _rendercreatureimage;
-    sdlg.rendercellimagefunc = _rendercellimage;
-    
     return TRUE;
 }
