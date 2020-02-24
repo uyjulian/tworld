@@ -106,7 +106,7 @@ all: tworld.html
 
 clean:
 	rm -f $(OBJS) tworld comptime.h config.*
-	rm -f tworldres.o tworld.exe
+	rm -f tworldres.o tworld.exe tworld.html tworld.html.mem tworld.data tworld.js tworld.js.orig.js
 
 spotless:
 	rm -f $(OBJS) tworld comptime.h config.* configure
