@@ -13,6 +13,9 @@
 #include	<sys/stat.h>
 #include	"err.h"
 #include	"fileio.h"
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 /* Determine the proper directory delimiter and mkdir() arguments.
  */
@@ -113,6 +116,13 @@ void fileclose(fileinfo *file, char const *msg)
 	file->name = NULL;
 	file->alloc = FALSE;
     }
+#ifdef __EMSCRIPTEN__
+        EM_ASM(
+            FS.syncfs(false, function(err) {
+                assert(!err);
+            });
+        );
+#endif
 }
 
 /* fgetpos().
@@ -235,8 +245,16 @@ int filewrite(fileinfo *file, void const *data, unsigned long size,
     if (!size)
 	return TRUE;
     errno = 0;
-    if (fwrite(data, size, 1, file->fp) == 1)
-	return TRUE;
+    if (fwrite(data, size, 1, file->fp) == 1) {
+#ifdef __EMSCRIPTEN__
+        EM_ASM(
+            FS.syncfs(false, function(err) {
+                assert(!err);
+            });
+        );
+#endif
+        return TRUE;
+    }
     return fileerr(file, msg);
 }
 

@@ -20,6 +20,9 @@
 #include	"oshw.h"
 #include	"cmdline.h"
 #include	"ver.h"
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 /* Bell-ringing macro.
  */
@@ -1857,6 +1860,18 @@ int tworld(int argc, char *argv[])
     gamespec	spec;
     char	lastseries[sizeof spec.series.filebase];
     int		f;
+
+#ifdef __EMSCRIPTEN__
+    EM_ASM(
+        FS.mkdir("/save");
+
+        FS.mount(IDBFS,{},"/save");
+
+        FS.syncfs(true, function(err) {
+            assert(!err);
+        });
+    );
+#endif
 
     if (!getsettings(argc, argv, &start))
 	return EXIT_FAILURE;
