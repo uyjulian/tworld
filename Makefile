@@ -1,18 +1,22 @@
 
 sharedir = ./
 
-CC = emcc
+# CC = emcc
 
-CFLAGS := -Wall -Wextra -O2 -DNDEBUG -s USE_SDL=2 -s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1
-LDFLAGS := -DSAVEDIR="/save" -s EXIT_RUNTIME=1 -s EMTERPRETIFY_WHITELIST='["_anykey", "_displayinputprompt", "_displaylist", "_displaytextscroll", "_dohelp", "_eventupdate", "_helptilescreen", "_input", "_keyinputcallback", "_main", "_onlinecontexthelp", "_onlinemainhelp", "_playbackgame", "_playgame", "_runcurrentlevel", "_scorescrollinputcallback", "_scrollinputcallback", "_scrollinputcallback_451", "_selectlevelbypassword", "_selectseriesandlevel", "_showscores", "_showsolutionfiles", "_solutionscrollinputcallback", "_textscrollinputcallback", "_tworld", "_verifyplayback", "_waitfortick", "_yninputcallback"]' --preload-file data --preload-file res --preload-file sets -Wall -Wextra -s USE_SDL=2 -s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1 -s TOTAL_MEMORY=67108864
+# CFLAGS := -Wall -Wextra -O2 -DNDEBUG -s USE_SDL=2 -s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1
+# LDFLAGS := -DSAVEDIR="/save" -s EXIT_RUNTIME=1 -s EMTERPRETIFY_WHITELIST='["_anykey", "_displayinputprompt", "_displaylist", "_displaytextscroll", "_dohelp", "_eventupdate", "_helptilescreen", "_input", "_keyinputcallback", "_main", "_onlinecontexthelp", "_onlinemainhelp", "_playbackgame", "_playgame", "_runcurrentlevel", "_scorescrollinputcallback", "_scrollinputcallback", "_scrollinputcallback_451", "_selectlevelbypassword", "_selectseriesandlevel", "_showscores", "_showsolutionfiles", "_solutionscrollinputcallback", "_textscrollinputcallback", "_tworld", "_verifyplayback", "_waitfortick", "_yninputcallback"]' --preload-file data --preload-file res --preload-file sets -Wall -Wextra -s USE_SDL=2 -s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1 -s TOTAL_MEMORY=67108864
+# LOADLIBES := 
+
+# BINARY := tworld.html
+
+
+CC = clang
+
+CFLAGS := -Wall -Wextra -O2 -DNDEBUG $(shell sdl2-config --cflags)
+LDFLAGS := -Wall -Wextra $(shell sdl2-config --libs)
 LOADLIBES := 
 
-
-# CC = clang
-
-# CFLAGS := -Wall -Wextra -O2 -DNDEBUG $(shell sdl2-config --cflags)
-# LDFLAGS := -Wall -Wextra $(shell sdl2-config --libs)
-# LOADLIBES := 
+BINARY := tworld
 
 #
 # End of configure section
@@ -30,11 +34,7 @@ RESOURCES = tworldres.o
 # Binaries
 #
 
-# tworld.html: $(OBJS)
-tworld.html: $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $^ $(LOADLIBES)
-
-tworld.exe: $(OBJS) $(RESOURCES)
+$(BINARY): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^ $(LOADLIBES)
 
 #
@@ -102,12 +102,12 @@ install: tworld
 	cp -i res/*.txt $(sharedir)/res/.
 	cp -i res/*.wav $(sharedir)/res/.
 
-all: tworld.html
+all: $(BINARY)
 
 clean:
 	rm -f $(OBJS) tworld comptime.h config.*
-	rm -f tworldres.o tworld.exe tworld.html tworld.html.mem tworld.data tworld.js tworld.js.orig.js
+	rm -f tworldres.o $(BINARY) tworld.html.mem tworld.data tworld.js tworld.js.orig.js
 
 spotless:
 	rm -f $(OBJS) tworld comptime.h config.* configure
-	rm -f tworldres.o tworld.exe
+	rm -f tworldres.o $(BINARY) tworld.html.mem tworld.data tworld.js tworld.js.orig.js
