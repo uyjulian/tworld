@@ -5,7 +5,7 @@ sharedir = ./
 
 # CFLAGS := -Wall -Wextra -O2 -DNDEBUG -s USE_SDL=2 -s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1
 # LDFLAGS := -DSAVEDIR="/save" -s EXIT_RUNTIME=1 -s EMTERPRETIFY_WHITELIST='["_anykey", "_displayinputprompt", "_displaylist", "_displaytextscroll", "_dohelp", "_eventupdate", "_helptilescreen", "_input", "_keyinputcallback", "_main", "_onlinecontexthelp", "_onlinemainhelp", "_playbackgame", "_playgame", "_runcurrentlevel", "_scorescrollinputcallback", "_scrollinputcallback", "_scrollinputcallback_451", "_selectlevelbypassword", "_selectseriesandlevel", "_showscores", "_showsolutionfiles", "_solutionscrollinputcallback", "_textscrollinputcallback", "_tworld", "_verifyplayback", "_waitfortick", "_yninputcallback"]' --preload-file data --preload-file res --preload-file sets -Wall -Wextra -s USE_SDL=2 -s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1 -s TOTAL_MEMORY=67108864
-# LOADLIBES := 
+# LOADLIBES := -lidbfs.js
 
 # BINARY := tworld.html
 
