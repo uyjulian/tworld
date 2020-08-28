@@ -1,15 +1,18 @@
 
 sharedir = ./
 
-# CC = emcc
+ifneq (x$(BUILD_EMSCRIPTEN),x)
+CC = emcc
 
-# CFLAGS := -Wall -Wextra -O2 -DNDEBUG -s USE_SDL=2 -s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1
-# LDFLAGS := -DSAVEDIR="/save" -s EXIT_RUNTIME=1 -s EMTERPRETIFY_WHITELIST='["_anykey", "_displayinputprompt", "_displaylist", "_displaytextscroll", "_dohelp", "_eventupdate", "_helptilescreen", "_input", "_keyinputcallback", "_main", "_onlinecontexthelp", "_onlinemainhelp", "_playbackgame", "_playgame", "_runcurrentlevel", "_scorescrollinputcallback", "_scrollinputcallback", "_scrollinputcallback_451", "_selectlevelbypassword", "_selectseriesandlevel", "_showscores", "_showsolutionfiles", "_solutionscrollinputcallback", "_textscrollinputcallback", "_tworld", "_verifyplayback", "_waitfortick", "_yninputcallback"]' --preload-file data --preload-file res --preload-file sets -Wall -Wextra -s USE_SDL=2 -s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1 -s TOTAL_MEMORY=67108864
-# LOADLIBES := -lidbfs.js
+CFLAGS := -Wall -Wextra -O3 -DNDEBUG -s USE_SDL=2 -s ASYNCIFY -g
+LDFLAGS := -g -DSAVEDIR="/save" -s ASYNCIFY_WHITELIST='["Emscripten_GLES_SwapWindow", "Emscripten_UpdateWindowFramebuffer", "GLES2_RenderPresent", "SDL_Delay", "SDL_GL_SwapWindow", "SDL_RenderPresent", "SDL_UpdateWindowSurface", "SDL_WaitEvent", "SDL_WaitEventTimeout", "SW_RenderPresent", "anykey", "displayendmessage", "displaygame", "displayinputprompt", "displaylist", "displaytable", "displaytextscroll", "displaytiletable", "drawscreen", "eventupdate", "input", "keyinputcallback", "main", "onlinecontexthelp", "onlinemainhelp", "scorescrollinputcallback", "scrollinputcallback", "scrollinputcallback.1", "selectlevelbypassword", "selectseriesandlevel", "showscores", "showsolutionfiles", "solutionscrollinputcallback", "textscrollinputcallback", "tworld", "waitfortick", "yninputcallback"]' --preload-file data --preload-file res --preload-file sets -Wall -Wextra -s USE_SDL=2 -s ASYNCIFY -s TOTAL_MEMORY=67108864
+LOADLIBES := -lidbfs.js
 
-# BINARY := tworld.html
+BINARY := tworld.html
+endif
 
 
+ifeq (x$(BUILD_EMSCRIPTEN),x)
 CC = clang
 
 CFLAGS := -Wall -Wextra -O2 -DNDEBUG $(shell sdl2-config --cflags)
@@ -17,6 +20,7 @@ LDFLAGS := -Wall -Wextra $(shell sdl2-config --libs)
 LOADLIBES := 
 
 BINARY := tworld
+endif
 
 #
 # End of configure section

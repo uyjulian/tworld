@@ -16,3 +16,6 @@ docs/*.html
 oshw
 oshw-sdl/Makefile
 website/wav
+*.data
+*.js
+*.wasm

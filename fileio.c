@@ -246,13 +246,6 @@ int filewrite(fileinfo *file, void const *data, unsigned long size,
 	return TRUE;
     errno = 0;
     if (fwrite(data, size, 1, file->fp) == 1) {
-#ifdef __EMSCRIPTEN__
-        EM_ASM(
-            FS.syncfs(false, function(err) {
-                assert(!err);
-            });
-        );
-#endif
         return TRUE;
     }
     return fileerr(file, msg);

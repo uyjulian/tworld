@@ -7,9 +7,6 @@
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<string.h>
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
 #include	"SDL.h"
 #include	"sdlgen.h"
 #include	"../err.h"
@@ -32,24 +29,7 @@ void eventupdate(int wait)
     int		x, y;
 
     if (wait) {
-#ifdef __EMSCRIPTEN__
-    	int broke = FALSE;
-	    for (;;) {
-	        SDL_PumpEvents();
-	        switch (SDL_PeepEvents(&event, 1, SDL_PEEKEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT)) {
-	        case 0:
-	            emscripten_sleep(10);
-	            break;
-	        default:
-	            /* Has events */
-	            broke = TRUE;
-	        }
-	        if (broke)
-	        	break;
-	    }
-#else
 		SDL_WaitEvent(NULL);
-#endif
 	}
 
     while (SDL_PollEvent(&event)) {
